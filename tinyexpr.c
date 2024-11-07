@@ -256,9 +256,9 @@ void next_token(state *s) {
                 const char *start;
                 start = s->next;
                 while (isalpha(s->next[0]) || isdigit(s->next[0]) || (s->next[0] == '_')) s->next++;
-                
-                const te_variable *var = find_lookup(s, start, s->next - start);
-                if (!var) var = find_builtin(start, s->next - start);
+
+                const te_variable *var = find_lookup(s, start, (int)(s->next - start));
+                if (!var) var = find_builtin(start, (int)(s->next - start));
 
                 if (!var) {
                     s->type = TOK_ERROR;
@@ -506,7 +506,7 @@ static te_expr *factor(state *s) {
     CHECK_NULL(ret);
 
     while (s->type == TOK_INFIX && (s->function == pow)) {
-        te_fun2 t = s->function;
+        te_fun2 t = (te_fun2)s->function;
         next_token(s);
         te_expr *p = power(s);
         CHECK_NULL(p, te_free(ret));
@@ -530,7 +530,7 @@ static te_expr *term(state *s) {
     CHECK_NULL(ret);
 
     while (s->type == TOK_INFIX && (s->function == mul || s->function == divide || s->function == fmod)) {
-        te_fun2 t = s->function;
+        te_fun2 t = (te_fun2)s->function;
         next_token(s);
         te_expr *f = factor(s);
         CHECK_NULL(f, te_free(ret));
@@ -552,7 +552,7 @@ static te_expr *expr(state *s) {
     CHECK_NULL(ret);
 
     while (s->type == TOK_INFIX && (s->function == add || s->function == sub)) {
-        te_fun2 t = s->function;
+        te_fun2 t = (te_fun2)s->function;
         next_token(s);
         te_expr *te = term(s);
         CHECK_NULL(te, te_free(ret));
@@ -678,7 +678,7 @@ te_expr *te_compile(const char *expression, const te_variable *variables, int va
     if (s.type != TOK_END) {
         te_free(root);
         if (error) {
-            *error = (s.next - s.start);
+            *error = (int)(s.next - s.start);
             if (*error == 0) *error = 1;
         }
         return 0;
